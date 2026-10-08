@@ -3,21 +3,21 @@
  * By: Jason James Newland
  * ©2026 - Kangasoft Software */
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
-using ClassicUno.Classes.Assets;
 using ClassicUno.Classes.Helpers;
+using ClassicUno.Classes.Helpers.Management;
 using ClassicUno.Classes.Logic;
-using ClassicUno.Classes.Logic.Player;
+using ClassicUno.Classes.Settings.SettingsData;
 using ClassicUno.Controls;
 
 namespace ClassicUno.Forms
 {
     public sealed partial class FrmGame : FeltForm
     {
-        private readonly Game _currentGame;
+        private Game _currentGame;
+        private readonly Timer _tmrNew;
 
         public FrmGame()
         {
@@ -32,79 +32,85 @@ namespace ClassicUno.Forms
             Text = $@"Classic UNO! 2026 - v{version.Major}.{version.Minor}";
             Icon = Icon.ExtractAssociatedIcon(assembly.Location);
 
-            Cards.BuildCardImages();
+            _tmrNew = new Timer {Interval = 10, Enabled = true};
+            _tmrNew.Tick += ShowNewGameDialog;
 
-            _currentGame = new Game();
-
-            /* Add some test players */
-            _currentGame.Players.Add(new HumanPlayer() { NameData = new PlayerNameData() { Name = "Penis", Gender = PlayerGender.Male } });
-
-            for (var players = 0; players <= 2; players++)
-            {
-                var n = Names.GetRandomName();
-                _currentGame.Players.Add(new ComputerPlayer() { NameData = n });
-            }
-
-            foreach (var p in _currentGame.Players)
-            {
-                //add seven cards (deal)
-                for (var i = 0; i <= 6; i++)
-                {
-                    var c = _currentGame.Deck[0];
-                    p.Cards.Add(c);
-                    _currentGame.Deck.RemoveAt(0);
-                    Debug.Print("Player " + p.NameData.Name + " " + p.NameData.Gender + " card add: " + c.Type + " " + c.Color + " " + c.Value);
-                }
-
-                p.PlayerPlaysCard += PlayerPlaysCard;
-                p.PlayerPass += PlayerPass;
-                p.PlayerEndTurn += PlayerEndTurn;
-                p.PlayerInvalidateRequired += PlayerInvalidateRequired;
-            }
-
-            //foreach (var cd in _currentGame.Deck)
-            //{
-            //    Debug.Print("Current card: " + cd.Type + " " + cd.Color + " " + cd.Value);
-            //}
-            
-            //var d = new FrmAbout();
-            //d.ShowDialog(this);
+            SettingsManager.Load();
         }
-        
+
         #region Form overrides
+        protected override void OnLoad(EventArgs e)
+        {
+            /* Set window position and size */
+            var loc = SettingsManager.Settings.Location;
+            if (loc == Point.Empty)
+            {
+                /* Scale form to less than the screen width/height */
+                var screen = Utils.GetCurrentMonitor(this);
+                var x = screen.Bounds.Width - 100;
+                var y = screen.Bounds.Height - 100;
+                Size = new Size(x, y);
+                /* Set location to center screen */
+                Location = new Point((screen.Bounds.Width / 2) - (Size.Width / 2), (screen.Bounds.Height / 2) - (Size.Height / 2));
+            }
+            else
+            {
+                Location = loc;
+                Size = SettingsManager.Settings.Size;
+                if (SettingsManager.Settings.Maximized)
+                {
+                    WindowState = FormWindowState.Maximized;
+                }
+            }
+            OnResize(e);
+            base.OnLoad(e);
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (WindowState == FormWindowState.Normal)
+            {
+                SettingsManager.Settings.Location = Location;
+                SettingsManager.Settings.Size = Size;
+            }
+            SettingsManager.Settings.Maximized = WindowState == FormWindowState.Maximized;
+            SettingsManager.Save();
+            base.OnFormClosing(e);
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
+            GraphicsManager.DrawGame(_currentGame, e.Graphics, ClientRectangle);
             base.OnPaint(e);
         }
         #endregion
 
-        /* Callbacks for players */
-        private void PlayerPlaysCard(IPlayer player, Card card)
+        #region Timer callback
+        private void ShowNewGameDialog(object sender, EventArgs e)
         {
+            /* This allows the form to initialize and load properly before displaying the dialog */
+            _tmrNew.Enabled = false;
+            _tmrNew.Tick -= ShowNewGameDialog;
+            _tmrNew.Dispose();
 
+            var d = new FrmNew
+            {
+                NameData = SettingsManager.Settings.GameData.NameData,
+                NumberOfPlayers = SettingsManager.Settings.GameData.NumberOfPlayers
+            };
+            if (d.ShowDialog(this) == DialogResult.OK)
+            {
+                var data = new SettingsGameData {NameData = d.NameData, NumberOfPlayers = d.NumberOfPlayers};
+                SettingsManager.Settings.GameData = data;
+                NewGame(data);
+            }
         }
-
-        private void PlayerPass(IPlayer player)
-        {
-            //placeholder for voice audio playback
-            Debug.Print("Player " + player.NameData.Name + " passed - however, PlayerEndTurn is called separately");
-        }
-
-        private void PlayerEndTurn(IPlayer player)
-        {
-            Debug.Print("Player " + player.NameData.Name + " ended their turn");
-        }
-
-        private void PlayerInvalidateRequired(IPlayer player)
-        {
-            /* Call a refresh/repaint */
-            Invalidate();
-        }
+        #endregion
 
         #region Private methods
-        private void NewGame()
+        private void NewGame(SettingsGameData data)
         {
-
+            _currentGame = new Game(this, data);
         }
         #endregion
     }

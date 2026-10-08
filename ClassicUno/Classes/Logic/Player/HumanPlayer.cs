@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using ClassicUno.Classes.Assets;
-using ClassicUno.Classes.Helpers;
+using ClassicUno.Classes.Settings.SettingsData;
 
 namespace ClassicUno.Classes.Logic.Player
 {

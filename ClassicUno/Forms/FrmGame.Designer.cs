@@ -40,7 +40,8 @@
             this.gameToolStripMenuItem});
             this.mnuMain.Location = new System.Drawing.Point(0, 0);
             this.mnuMain.Name = "mnuMain";
-            this.mnuMain.Size = new System.Drawing.Size(963, 24);
+            this.mnuMain.Padding = new System.Windows.Forms.Padding(7, 2, 0, 2);
+            this.mnuMain.Size = new System.Drawing.Size(761, 24);
             this.mnuMain.TabIndex = 0;
             this.mnuMain.Text = "menuStrip1";
             // 
@@ -52,19 +53,21 @@
             // 
             // statusBar
             // 
-            this.statusBar.Location = new System.Drawing.Point(0, 588);
+            this.statusBar.Location = new System.Drawing.Point(0, 491);
             this.statusBar.Name = "statusBar";
-            this.statusBar.Size = new System.Drawing.Size(963, 22);
+            this.statusBar.Padding = new System.Windows.Forms.Padding(1, 0, 16, 0);
+            this.statusBar.Size = new System.Drawing.Size(761, 22);
             this.statusBar.TabIndex = 1;
             this.statusBar.Text = "statusStrip1";
             // 
             // FrmGame
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(963, 610);
+            this.ClientSize = new System.Drawing.Size(761, 513);
             this.Controls.Add(this.statusBar);
             this.Controls.Add(this.mnuMain);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.MainMenuStrip = this.mnuMain;
             this.Name = "FrmGame";
             this.Text = "Classic Uno 2026";

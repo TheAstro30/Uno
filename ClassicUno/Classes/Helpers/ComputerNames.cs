@@ -4,38 +4,52 @@
  * ©2026 - Kangasoft Software */
 using System;
 using System.Collections.Generic;
+using ClassicUno.Classes.Settings.SettingsData;
 
 namespace ClassicUno.Classes.Helpers
 {
-    public enum PlayerGender
+    public static class ComputerNames
     {
-        Male = 0,
-        Female = 1,
-        NonBinary = 2
-    }
-
-    [Serializable]
-    public class PlayerNameData
-    {
-        public string Name { get; set; }
-
-        public PlayerGender Gender { get; set; }
-    }
-
-    public static class Names
-    {
+        /* Simple class for generating random Computer player names and genders */
         private static readonly Random Gender = new Random();
 
         private static readonly Random Name = new Random();
 
         private static readonly List<string> MaleNames = new List<string>()
         {
-            "John", "Tim", "Sam", "Bill", "Henry", "Paul", "Michael", "Mitch", "Steve", "William", "Martin", "Colin", "Allen"
+            "John",
+            "Tim",
+            "Sam",
+            "Bill",
+            "Henry",
+            "Paul",
+            "Michael",
+            "Mitch",
+            "Steve",
+            "William",
+            "Martin",
+            "Colin",
+            "Allen",
+            "Tom",
+            "Jim"
         };
 
         private static readonly List<string> FemaleNames = new List<string>()
         {
-            "Samantha", "Diane", "Julie", "Annie", "Amy", "Jenny", "Alica", "Jasmine", "Wendy", "Rebecca", "Claire", "Amanda"
+            "Samantha",
+            "Diane",
+            "Julie",
+            "Annie",
+            "Amy",
+            "Jenny",
+            "Alica",
+            "Jasmine",
+            "Wendy",
+            "Rebecca",
+            "Claire",
+            "Amanda",
+            "Jessica",
+            "Chloe"
         };
 
         public static PlayerNameData GetRandomName()

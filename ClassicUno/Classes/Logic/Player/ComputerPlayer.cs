@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.ComponentModel;
 using ClassicUno.Classes.Assets;
-using ClassicUno.Classes.Helpers;
+using ClassicUno.Classes.Settings.SettingsData;
 
 namespace ClassicUno.Classes.Logic.Player
 {

@@ -4,9 +4,14 @@
  * ©2026 - Kangasoft Software */
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Threading;
+using System.Windows.Forms;
 using ClassicUno.Classes.Assets;
 using ClassicUno.Classes.Helpers;
 using ClassicUno.Classes.Logic.Player;
+using ClassicUno.Classes.Settings.SettingsData;
 
 namespace ClassicUno.Classes.Logic
 {
@@ -14,20 +19,57 @@ namespace ClassicUno.Classes.Logic
     public class Game
     {
         /* Basic game class */
+        private Form _parent;
+        private BackgroundWorker _worker;
+
         public List<IPlayer> Players { get; set; }
 
         public List<Card> Deck { get; set; }
 
         public List<Card> DisposePile { get; set; }
 
-        public Game()
+        #region Constructor
+        public Game(Form parent, SettingsGameData data)
         {
+            _parent = parent;
+
             Players = new List<IPlayer>();
-
             Deck = new List<Card>();
-
             DisposePile = new List<Card>();
 
+            BuildDeck();
+            CreatePlayers(data);
+            BeginDeal();
+        }
+        #endregion
+
+        #region Player callbacks
+        private void PlayerPlaysCard(IPlayer player, Card card)
+        {
+
+        }
+
+        private void PlayerPass(IPlayer player)
+        {
+            //placeholder for voice audio playback
+            Debug.Print("Player " + player.NameData.Name + " passed - however, PlayerEndTurn is called separately");
+        }
+
+        private void PlayerEndTurn(IPlayer player)
+        {
+            Debug.Print("Player " + player.NameData.Name + " ended their turn");
+        }
+
+        private void PlayerInvalidateRequired(IPlayer player)
+        {
+            /* Call a refresh/repaint */
+            _parent.Invalidate();
+        }
+        #endregion
+
+        #region Private methods
+        private void BuildDeck()
+        {
             /* Build the deck of 108 cards (four wilds/four wild draw four's) */
             for (var color = 0; color <= 3; color++)
             {
@@ -68,7 +110,7 @@ namespace ClassicUno.Classes.Logic
                             /* Numeric 0 - 9 */
                             c = new Card
                             {
-                                Color = (CardColor) color + 1,
+                                Color = (CardColor)color + 1,
                                 Type = CardType.Numeric,
                                 Value = i
                             };
@@ -96,5 +138,56 @@ namespace ClassicUno.Classes.Logic
             /* Shuffle the deck */
             Deck.Shuffle();
         }
+
+        private void CreatePlayers(SettingsGameData data)
+        {
+            /* Add players: min 2 max 4.
+             * First add the human player */
+            Players.Add(new HumanPlayer() { NameData = data.NameData });
+
+            for (var players = 0; players <= data.NumberOfPlayers - 2; players++)
+            {
+                var n = ComputerNames.GetRandomName();
+                Players.Add(new ComputerPlayer() { NameData = n });
+            }
+
+            foreach (var p in Players)
+            {
+                /* Add callbacks */
+                p.PlayerPlaysCard += PlayerPlaysCard;
+                p.PlayerPass += PlayerPass;
+                p.PlayerEndTurn += PlayerEndTurn;
+                p.PlayerInvalidateRequired += PlayerInvalidateRequired;
+            }
+
+            foreach (var cd in Players)
+            {
+                Debug.Print("Player: " + cd.NameData.Name);
+            }
+        }
+
+        private void BeginDeal()
+        {
+            _worker = new BackgroundWorker();
+            _worker.DoWork += DealWorkerCallback;
+            _worker.RunWorkerAsync();
+        }
+
+        private void DealWorkerCallback(object sender, DoWorkEventArgs e)
+        {
+            for (var i = 0; i <= 6; i++)
+            {
+                foreach (var p in Players)
+                {
+                    var c = Deck[0];
+                    p.Cards.Add(c);
+                    Deck.RemoveAt(0);
+                    Thread.Sleep(200);
+                    _parent.Invalidate();
+                    Debug.Print("card added to " + p.NameData.Name +"'s hand");
+                }
+            }
+        }
+        #endregion
     }
 }

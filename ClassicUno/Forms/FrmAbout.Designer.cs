@@ -34,6 +34,7 @@
             this.lblVersion = new System.Windows.Forms.Label();
             this.lblAuthor = new System.Windows.Forms.Label();
             this.lblCopyright = new System.Windows.Forms.Label();
+            this.lblInfo = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // pnlIcon
@@ -49,7 +50,7 @@
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(223, 247);
+            this.btnOk.Location = new System.Drawing.Point(223, 239);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(75, 23);
             this.btnOk.TabIndex = 1;
@@ -98,12 +99,23 @@
             this.lblCopyright.TabIndex = 5;
             this.lblCopyright.Text = "Copyright ©2026 - Kangasoft Software";
             // 
+            // lblInfo
+            // 
+            this.lblInfo.BackColor = System.Drawing.Color.Transparent;
+            this.lblInfo.Location = new System.Drawing.Point(14, 173);
+            this.lblInfo.Name = "lblInfo";
+            this.lblInfo.Size = new System.Drawing.Size(284, 53);
+            this.lblInfo.TabIndex = 6;
+            this.lblInfo.Text = "All card images and the UNO! logo are © Copyright and a registered trademark of M" +
+    "attel. This game was reproduced for entertainment purposes only.";
+            // 
             // FrmAbout
             // 
             this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(307, 282);
+            this.ClientSize = new System.Drawing.Size(307, 274);
+            this.Controls.Add(this.lblInfo);
             this.Controls.Add(this.lblCopyright);
             this.Controls.Add(this.lblAuthor);
             this.Controls.Add(this.lblVersion);
@@ -115,8 +127,10 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "FrmAbout";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Classic UNO!";
+            this.Text = "About Classic UNO!";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -130,5 +144,6 @@
         private System.Windows.Forms.Label lblVersion;
         private System.Windows.Forms.Label lblAuthor;
         private System.Windows.Forms.Label lblCopyright;
+        private System.Windows.Forms.Label lblInfo;
     }
 }

@@ -5,13 +5,15 @@
 using System.Collections.Generic;
 using System.Drawing;
 using ClassicUno.Classes.Assets;
+using ClassicUno.Classes.Logic;
 using ClassicUno.Properties;
 
-namespace ClassicUno.Classes.Helpers
+namespace ClassicUno.Classes.Helpers.Management
 {
-    public static class Cards
+    public static class GraphicsManager
     {
-        /* KeyPair class for Dictionary object*/
+        #region CardKey
+        /* KeyPair class for Dictionary object */
         private class CardKey
         {
             private readonly CardColor _color;
@@ -39,27 +41,49 @@ namespace ClassicUno.Classes.Helpers
                 return (int)_color * 10000 + (int)_type * 100 + _value;
             }
         }
+        #endregion
 
-        /* UNO! card images */
+        #region Fields
+        /* UNO! card images - this separates current game play card data from the actual bitmaps. This makes it easier
+         * to create a smaller "game-save" file without including the images in the binary data file. */
         private static readonly Dictionary<CardKey, Bitmap> CardImages = new Dictionary<CardKey, Bitmap>();
 
-        /* Back of the UNO! cards */
+        /* Back of the UNO! cards - this is displayed on the UI when cards are "face-down" */
         public static Bitmap CardBack { get; private set; }
 
-        public static void BuildCardImages()
+        public static Bitmap Uno { get; private set; }
+        #endregion
+
+        static GraphicsManager()
+        {
+            BuildCardImages();
+            BuildAssets();
+        }
+
+        #region Card image building
+        private static void BuildCardImages()
         {
             var image = Resources.cards;
             var startY = 0;
 
+            /* Loop through all four colors (this is the "Y" direction */
             for (var color = 0; color <= 3; color++)
             {
-                var startX = 0;
+                /* Loop though all 14 cards of the resource image in the "X" direction "cutting-out" the images,
+                 * or cropping, into a single bitmap of each card - paying particular attention to "special" cards;
+                 * such as Wild, Wild Draw Four, Skip, UNO! Reverse, etc. */
+
+                var startX = 0; /* This must be reset each new "Y" iteration */
+
                 for (var i = 0; i <= 13; i++)
                 {
                     var rect = new Rectangle(startX, startY, 144, 216);
                     var cardImg = image.Clone(rect, image.PixelFormat);
+
+                    /* Set the transparency of the current card image to the predifined ARGB format of RGB(1, 1, 1) */
                     cardImg.MakeTransparent(Color.FromArgb(1, 1, 1));
 
+                    /* Check which "X" position we are currently at for "special" cards, everything else is numeric */
                     switch (i)
                     {
                         case 10:
@@ -103,13 +127,31 @@ namespace ClassicUno.Classes.Helpers
                             AddCardImage((CardColor)color + 1, CardType.Numeric, i, cardImg);
                             break;
                     }
-                    startX += 144;
+                    startX += 144; /* Card image width */
                 }
-                startY += 216;
+                startY += 216; /* Card image height */
             }
         }
+        #endregion
 
-        public static Bitmap GetCardImage(Card card)
+        #region Asset building
+        private static void BuildAssets()
+        {
+            /* Build other graphics related objects */
+            Uno = new Bitmap(Resources.uno);
+            Uno.MakeTransparent(Color.FromArgb(1, 1, 1));
+        }
+        #endregion
+
+        #region Drawing methods
+        public static void DrawGame(Game game, Graphics g, Rectangle clientRectangle)
+        {
+            /* Draw the current game in progress */
+        }
+        #endregion
+
+        #region Private methods
+        private static Bitmap GetCardImage(Card card)
         {
             /* This returns the bitmap image related to the UNO! card */
             var key = new CardKey(card.Color, card.Type, card.Value);
@@ -122,5 +164,6 @@ namespace ClassicUno.Classes.Helpers
             var key = new CardKey(color, type, value);
             CardImages.Add(key, image);
         }
+        #endregion
     }
 }

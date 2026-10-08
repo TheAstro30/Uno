@@ -1,0 +1,39 @@
+﻿/* Classic Uno 2026
+ * Version: 1.0
+ * By: Jason James Newland
+ * ©2026 - Kangasoft Software */
+using System;
+using System.ComponentModel;
+using System.Xml.Serialization;
+
+namespace ClassicUno.Classes.Settings.SettingsData
+{
+    public enum PlayerGender
+    {
+        [Description("Male")]
+        Male = 0,
+
+        [Description("Female")]
+        Female = 1
+    }
+
+    [Serializable]
+    public class PlayerNameData
+    {
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+
+        [XmlAttribute("gender")]
+        public PlayerGender Gender { get; set; }
+    }
+
+    [Serializable]
+    public class SettingsGameData
+    {
+        [XmlElement("humanPlayer")]
+        public PlayerNameData NameData = new PlayerNameData();
+
+        [XmlAttribute("players")]
+        public int NumberOfPlayers { get; set; }
+    }
+}
