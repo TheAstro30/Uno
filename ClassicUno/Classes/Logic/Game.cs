@@ -13,6 +13,7 @@ namespace ClassicUno.Classes.Logic
     [Serializable]
     public class Game
     {
+        /* Basic game class */
         public List<IPlayer> Players { get; set; }
 
         public List<Card> Deck { get; set; }

@@ -21,6 +21,7 @@ namespace ClassicUno.Classes.Logic.Player
         event Action<IPlayer, Card> PlayerPlaysCard;
         event Action<IPlayer> PlayerPass;
         event Action<IPlayer> PlayerEndTurn;
+        event Action<IPlayer> PlayerInvalidateRequired;
 
         void BeginTurn(Game game);
 

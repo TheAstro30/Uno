@@ -6,7 +6,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace ClassicUno.Classes.Custom
+namespace ClassicUno.Controls
 {
     public class FeltForm : Form
     {

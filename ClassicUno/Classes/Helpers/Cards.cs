@@ -11,6 +11,7 @@ namespace ClassicUno.Classes.Helpers
 {
     public static class Cards
     {
+        /* KeyPair class for Dictionary object*/
         private class CardKey
         {
             private readonly CardColor _color;
@@ -39,15 +40,15 @@ namespace ClassicUno.Classes.Helpers
             }
         }
 
+        /* UNO! card images */
         private static readonly Dictionary<CardKey, Bitmap> CardImages = new Dictionary<CardKey, Bitmap>();
 
+        /* Back of the UNO! cards */
         public static Bitmap CardBack { get; private set; }
 
         public static void BuildCardImages()
         {
             var image = Resources.cards;
-            CardKey card;
-            Rectangle rect;
             var startY = 0;
 
             for (var color = 0; color <= 3; color++)
@@ -55,7 +56,7 @@ namespace ClassicUno.Classes.Helpers
                 var startX = 0;
                 for (var i = 0; i <= 13; i++)
                 {
-                    rect = new Rectangle(startX, startY, 144, 216);
+                    var rect = new Rectangle(startX, startY, 144, 216);
                     var cardImg = image.Clone(rect, image.PixelFormat);
                     cardImg.MakeTransparent(Color.FromArgb(1, 1, 1));
 
@@ -110,12 +111,14 @@ namespace ClassicUno.Classes.Helpers
 
         public static Bitmap GetCardImage(Card card)
         {
+            /* This returns the bitmap image related to the UNO! card */
             var key = new CardKey(card.Color, card.Type, card.Value);
             return CardImages.TryGetValue(key, out var image) ? image : null;
         }
 
         private static void AddCardImage(CardColor color, CardType type, int value, Bitmap image)
         {
+            /* Create a new dictionary entry in CardImages based on parameters */
             var key = new CardKey(color, type, value);
             CardImages.Add(key, image);
         }

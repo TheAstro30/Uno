@@ -23,6 +23,7 @@ namespace ClassicUno.Classes.Logic.Player
         public event Action<IPlayer, Card> PlayerPlaysCard;
         public event Action<IPlayer> PlayerPass;
         public event Action<IPlayer> PlayerEndTurn;
+        public event Action<IPlayer> PlayerInvalidateRequired;
 
         public ComputerPlayer()
         {

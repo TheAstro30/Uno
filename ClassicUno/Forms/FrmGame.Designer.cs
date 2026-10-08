@@ -28,20 +28,58 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.mnuMain = new System.Windows.Forms.MenuStrip();
+            this.gameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.statusBar = new System.Windows.Forms.StatusStrip();
+            this.mnuMain.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // mnuMain
+            // 
+            this.mnuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.gameToolStripMenuItem});
+            this.mnuMain.Location = new System.Drawing.Point(0, 0);
+            this.mnuMain.Name = "mnuMain";
+            this.mnuMain.Size = new System.Drawing.Size(963, 24);
+            this.mnuMain.TabIndex = 0;
+            this.mnuMain.Text = "menuStrip1";
+            // 
+            // gameToolStripMenuItem
+            // 
+            this.gameToolStripMenuItem.Name = "gameToolStripMenuItem";
+            this.gameToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
+            this.gameToolStripMenuItem.Text = "Game";
+            // 
+            // statusBar
+            // 
+            this.statusBar.Location = new System.Drawing.Point(0, 588);
+            this.statusBar.Name = "statusBar";
+            this.statusBar.Size = new System.Drawing.Size(963, 22);
+            this.statusBar.TabIndex = 1;
+            this.statusBar.Text = "statusStrip1";
             // 
             // FrmGame
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(963, 610);
+            this.Controls.Add(this.statusBar);
+            this.Controls.Add(this.mnuMain);
+            this.MainMenuStrip = this.mnuMain;
             this.Name = "FrmGame";
             this.Text = "Classic Uno 2026";
+            this.mnuMain.ResumeLayout(false);
+            this.mnuMain.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
+
+        private System.Windows.Forms.MenuStrip mnuMain;
+        private System.Windows.Forms.ToolStripMenuItem gameToolStripMenuItem;
+        private System.Windows.Forms.StatusStrip statusBar;
     }
 }
 

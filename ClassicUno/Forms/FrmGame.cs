@@ -8,10 +8,10 @@ using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
 using ClassicUno.Classes.Assets;
-using ClassicUno.Classes.Custom;
 using ClassicUno.Classes.Helpers;
 using ClassicUno.Classes.Logic;
 using ClassicUno.Classes.Logic.Player;
+using ClassicUno.Controls;
 
 namespace ClassicUno.Forms
 {
@@ -23,15 +23,13 @@ namespace ClassicUno.Forms
         {
             InitializeComponent();
 
-            /* Version information */
-            Assembly assembly = Assembly.GetExecutingAssembly();
+            /* Get current assembly */
+            var assembly = Assembly.GetExecutingAssembly();
 
-            // Or get the assembly containing this specific code line
-            // Assembly assembly = Assembly.GetExecutingAssembly();
+            /* Get version information */
+            var version = assembly.GetName().Version;
 
-            Version version = assembly.GetName().Version;
-
-            Text = $@"Classic Uno 2026 - v{version.Major}.{version.Minor}";
+            Text = $@"Classic UNO! 2026 - v{version.Major}.{version.Minor}";
             Icon = Icon.ExtractAssociatedIcon(assembly.Location);
 
             Cards.BuildCardImages();
@@ -61,12 +59,16 @@ namespace ClassicUno.Forms
                 p.PlayerPlaysCard += PlayerPlaysCard;
                 p.PlayerPass += PlayerPass;
                 p.PlayerEndTurn += PlayerEndTurn;
+                p.PlayerInvalidateRequired += PlayerInvalidateRequired;
             }
 
-            foreach (var cd in _currentGame.Deck)
-            {
-                Debug.Print("Current card: " + cd.Type + " " + cd.Color + " " + cd.Value);
-            }
+            //foreach (var cd in _currentGame.Deck)
+            //{
+            //    Debug.Print("Current card: " + cd.Type + " " + cd.Color + " " + cd.Value);
+            //}
+            
+            //var d = new FrmAbout();
+            //d.ShowDialog(this);
         }
         
         #region Form overrides
@@ -91,6 +93,12 @@ namespace ClassicUno.Forms
         private void PlayerEndTurn(IPlayer player)
         {
             Debug.Print("Player " + player.NameData.Name + " ended their turn");
+        }
+
+        private void PlayerInvalidateRequired(IPlayer player)
+        {
+            /* Call a refresh/repaint */
+            Invalidate();
         }
 
         #region Private methods
