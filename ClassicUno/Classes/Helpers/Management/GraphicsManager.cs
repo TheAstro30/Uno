@@ -4,9 +4,7 @@
  * ©2026 - Kangasoft Software */
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using ClassicUno.Classes.Assets;
 using ClassicUno.Classes.Logic;
 using ClassicUno.Classes.Logic.Player;
@@ -62,7 +60,7 @@ namespace ClassicUno.Classes.Helpers.Management
         public static Bitmap Uno { get; private set; }
         #endregion
 
-        static GraphicsManager()
+        public static void Initialize()
         {
             BuildCardImages();
             BuildAssets();
@@ -176,7 +174,7 @@ namespace ClassicUno.Classes.Helpers.Management
             DrawDeck(game, g, clientRectangle);
             DrawDisposePile(game, g, clientRectangle);
             DrawPlayerCards(game, g, clientRectangle);
-            DrawPlayerNames(game, g, clientRectangle);
+            DrawPlayerNames(game, g, GetPlayerHandBounds(clientRectangle, _cardWidth, _cardHeight));
         }
 
         private static void DrawDeck(Game game, Graphics g, Rectangle clientRectangle)
@@ -264,13 +262,14 @@ namespace ClassicUno.Classes.Helpers.Management
             var totalWidth = cardWidth + (count - 1) * spacing;
             var totalHeight = cardHeight + (count - 1) * spacing;
 
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i <= count - 1; i++)
             {
                 /* Show card back if player is not human */
                 Image image = player.GetType() == typeof(HumanPlayer) ? GetCardImage(player.Cards[i]) : CardBack;
 
                 if (image == null)
                 {
+                    /* This shouldn't happen */
                     continue;
                 }
 
@@ -287,6 +286,12 @@ namespace ClassicUno.Classes.Helpers.Management
                     x = angle == 90 ? clientRectangle.Left + cardWidth / 2f + 50f : clientRectangle.Right - cardWidth / 2f - 50f;
                     y = clientRectangle.Top + (clientRectangle.Height - totalHeight) / 2f + i * spacing + cardHeight / 2f - cardWidth / 2f;
                     DrawRotatedCard(g, image, x, y, angle);
+                }
+                /* Set card region */
+                if (player.GetType() == typeof(HumanPlayer))
+                {
+                    player.Cards[i].Region = new RectangleF(x, y, i < count - 1 ? spacing : _cardWidth, _cardHeight);
+                    //Debug.Print("Set region " + player.NameData.Name + ": " + player.Cards[i].Region + " " + player.Cards[i].Type + " " + spacing);
                 }
             }
         }
@@ -313,45 +318,61 @@ namespace ClassicUno.Classes.Helpers.Management
             }
         }
 
-        private static void DrawPlayerNames(Game game, Graphics g, Rectangle clientRectangle)
+        private static void DrawPlayerNames(Game game, Graphics g, IReadOnlyList<RectangleF> handBounds)
         {
-            /* Positions relative to the client clientRectangle (bottom, left, top, right) */
-            PointF[] positions =
+            const float gap = 6f;
+            const float nameHeight = 28f;
+            const float sideNameWidth = 120f;
+
+            if (handBounds == null || handBounds.Count < 4)
             {
-                new PointF(clientRectangle.Left + clientRectangle.Width * 0.50f,
-                    clientRectangle.Top + clientRectangle.Height * 0.88f),
-                new PointF(clientRectangle.Left + clientRectangle.Width * 0.16f,
-                    clientRectangle.Top + clientRectangle.Height * 0.50f),
-                new PointF(clientRectangle.Left + clientRectangle.Width * 0.50f,
-                    clientRectangle.Top + clientRectangle.Height * 0.24f),
-                new PointF(clientRectangle.Left + clientRectangle.Width * 0.85f,
-                    clientRectangle.Top + clientRectangle.Height * 0.50f)
-            };
+                return;
+            }
+
+            /* Player order: bottom, left, top, right. */
+            var nameBounds = new RectangleF[4];
+
+            /* Bottom name: directly UNDER the bottom cards. */
+            nameBounds[0] = new RectangleF(handBounds[0].Left, handBounds[0].Bottom + gap, handBounds[0].Width, nameHeight);
+
+            /* Left name: aligned with the top of the left hand. */
+            nameBounds[1] = new RectangleF(handBounds[1].Right + gap, handBounds[1].Top, sideNameWidth, nameHeight);
+
+            /* Top name: just below the top hand. */
+            nameBounds[2] = new RectangleF(handBounds[2].Left, handBounds[2].Bottom + gap, handBounds[2].Width, nameHeight);
+
+            // Right name: aligned with the top of the right hand.
+            nameBounds[3] = new RectangleF(handBounds[3].Left - sideNameWidth - gap, handBounds[3].Top, sideNameWidth, nameHeight);
 
             using (var font = new Font("Arial", 14, FontStyle.Bold))
             {
-                using (var shadow = new SolidBrush(Color.Black))
+                using (Brush shadow = new SolidBrush(Color.Black))
                 {
-                    using (var normalText = new SolidBrush(Color.FromArgb(255, 225, 140)))
+                    using (Brush normalText = new SolidBrush(Color.FromArgb(255, 225, 140)))
                     {
-                        using (var highlightText = new SolidBrush(Color.DeepSkyBlue))
+                        using (Brush highlightText = new SolidBrush(Color.DeepSkyBlue))
                         {
                             using (var sf = new StringFormat())
                             {
                                 sf.Alignment = StringAlignment.Center;
                                 sf.LineAlignment = StringAlignment.Center;
+                                sf.Trimming = StringTrimming.EllipsisCharacter;
+                                sf.FormatFlags = StringFormatFlags.NoWrap;
 
-                                for (var i = 0; i < game.Players.Count; i++)
+                                var playerCount = Math.Min(game.Players.Count, 4);
+
+                                for (var i = 0; i < playerCount; i++)
                                 {
-                                    /* Draw shadow */
-                                    g.DrawString(game.Players[i].NameData.Name, font, shadow, positions[i].X + 2,
-                                        positions[i].Y + 2, sf);
+                                    var bounds = nameBounds[i];
 
-                                    /* Draw text; bottom player (index 0) is the human player */
-                                    Brush textBrush = game.CurrentPlayer == game.Players[i] ? highlightText : normalText;
-                                    g.DrawString(game.Players[i].NameData.Name, font, textBrush, positions[i].X,
-                                        positions[i].Y,
-                                        sf);
+                                    /* Draw shadow. */
+                                    var shadowBounds = bounds;
+                                    shadowBounds.Offset(2f, 2f);
+                                    g.DrawString(game.Players[i].NameData.Name, font, shadow, shadowBounds, sf);
+
+                                    /* Highlight the current player's name. */
+                                    var textBrush = game.CurrentPlayer == game.Players[i] ? highlightText : normalText;
+                                    g.DrawString(game.Players[i].NameData.Name, font, textBrush, bounds, sf);
                                 }
                             }
                         }
@@ -359,9 +380,37 @@ namespace ClassicUno.Classes.Helpers.Management
                 }
             }
         }
+
+        private static RectangleF[] GetPlayerHandBounds(Rectangle clientRectangle, float cardWidth, float cardHeight)
+        {
+            const float edgeMargin = 10f;
+            const float nameHeight = 28f;
+            const float nameGap = 6f;
+
+            /* Player order: bottom, left, top, right. */
+            var handBounds = new RectangleF[4];
+
+            /* Bottom hand */
+            handBounds[0] = new RectangleF(clientRectangle.Left + (clientRectangle.Width - cardWidth) / 2f,
+                clientRectangle.Bottom - cardHeight - 120f, cardWidth, cardHeight);
+
+            /* Left hand: cards rotated 90 degrees, centred vertically. */
+            handBounds[1] = new RectangleF(clientRectangle.Left + edgeMargin,
+                clientRectangle.Top + (clientRectangle.Height - cardWidth) / 2f, cardHeight, cardWidth);
+
+            /* Top hand: leave room for its name above it. */
+            handBounds[2] = new RectangleF(clientRectangle.Left + (clientRectangle.Width - cardWidth) / 2f,
+                clientRectangle.Top + edgeMargin + nameHeight + nameGap, cardWidth, cardHeight);
+
+            /* Right hand: cards rotated 90 degrees, centred vertically. */
+            handBounds[3] = new RectangleF(clientRectangle.Right - cardHeight - edgeMargin,
+                clientRectangle.Top + (clientRectangle.Height - cardWidth) / 2f, cardHeight, cardWidth);
+
+            return handBounds;
+        }
         #endregion
 
-        #region Private methods
+        #region Card image helpers
         private static Bitmap GetCardImage(Card card)
         {
             /* This returns the bitmap image related to the UNO! card */

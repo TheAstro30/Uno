@@ -3,6 +3,7 @@
  * By: Jason James Newland
  * ©2026 - Kangasoft Software */
 using System;
+using System.Drawing;
 
 namespace ClassicUno.Classes.Assets
 {
@@ -34,5 +35,7 @@ namespace ClassicUno.Classes.Assets
         public CardColor Color { get; set; }
 
         public int Value { get; set; }
+
+        public RectangleF Region { get; set; }
     }
 }

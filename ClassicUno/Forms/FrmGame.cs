@@ -3,6 +3,7 @@
  * By: Jason James Newland
  * ©2026 - Kangasoft Software */
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
@@ -20,7 +21,7 @@ namespace ClassicUno.Forms
         private Game _currentGame;
         private readonly Timer _tmrNew;
 
-        private UiSynchronize _sync;
+        private readonly UiSynchronize _sync;
 
         public FrmGame()
         {
@@ -41,6 +42,7 @@ namespace ClassicUno.Forms
             _sync = new UiSynchronize(this);
 
             SettingsManager.Load();
+            GraphicsManager.Initialize();
             AudioManager.Initialize();
         }
 
@@ -97,8 +99,26 @@ namespace ClassicUno.Forms
         }
         #endregion
 
-        #region Sound callbacks
+        #region Mouse
 
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            if (_currentGame == null)
+            {
+                return;
+            }
+
+            var c = HitTest.Compare(_currentGame.Players[0].Cards, e.Location);
+            if (c != null)
+            {
+                Debug.Print("I have a card: " + c.Color + " " + c.Value + " " + c.Type);
+            }
+            base.OnMouseMove(e);
+        }
+
+        #endregion
+
+        #region Sound callbacks
         private void SoundEffectRequest(SoundType type)
         {
             if (InvokeRequired)
@@ -108,7 +128,6 @@ namespace ClassicUno.Forms
             }
             AudioManager.PlayEffect(type);
         }
-
         #endregion
 
         #region Timer callback
