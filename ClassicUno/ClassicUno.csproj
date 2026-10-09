@@ -50,10 +50,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Assets\Card.cs" />
+    <Compile Include="Classes\DirectSound\Core\Control.cs" />
+    <Compile Include="Classes\DirectSound\Core\Core.cs" />
+    <Compile Include="Classes\DirectSound\Core\Device.cs" />
+    <Compile Include="Classes\DirectSound\Core\Extend.cs" />
+    <Compile Include="Classes\DirectSound\Core\Utils.cs" />
+    <Compile Include="Classes\DirectSound\Core\UuIds.cs" />
+    <Compile Include="Classes\DirectSound\Sound.cs" />
+    <Compile Include="Classes\FolderSearch.cs" />
+    <Compile Include="Classes\Helpers\Management\AudioManager.cs" />
     <Compile Include="Classes\Helpers\Management\SettingsManager.cs" />
+    <Compile Include="Classes\Helpers\UI\UiSynchronize.cs" />
     <Compile Include="Classes\Helpers\Utils.cs" />
     <Compile Include="Classes\Settings\Settings.cs" />
-    <Compile Include="Classes\Settings\SettingsData\SettingsGameData.cs" />
+    <Compile Include="Classes\Settings\SettingsData\GameOptionData.cs" />
+    <Compile Include="Classes\Settings\SettingsData\SoundData.cs" />
     <Compile Include="Controls\FeltForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -121,9 +132,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Classes\UI\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="Images\uno.png" />
     <Content Include="mainIcon.ico" />

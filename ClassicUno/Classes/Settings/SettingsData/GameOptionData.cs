@@ -28,12 +28,15 @@ namespace ClassicUno.Classes.Settings.SettingsData
     }
 
     [Serializable]
-    public class SettingsGameData
+    public class GameOptionData
     {
         [XmlElement("humanPlayer")]
         public PlayerNameData NameData = new PlayerNameData();
 
         [XmlAttribute("players")]
         public int NumberOfPlayers { get; set; }
+
+        [XmlElement]
+        public SoundData Sounds = new SoundData();
     }
 }

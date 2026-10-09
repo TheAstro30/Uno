@@ -48,7 +48,7 @@ namespace ClassicUno.Forms
         {
             if (txtName.Text.Length == 0)
             {
-                MessageBox.Show(this, @"Please enter a name.", @"Classic UNO!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(this, @"Please enter a name.", @"Classic UNO! 2026", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
             NameData.Name = txtName.Text;

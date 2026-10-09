@@ -13,6 +13,8 @@ namespace ClassicUno.Classes.Logic.Player
     {
         PlayerNameData NameData { get; set; }
 
+        int VoiceIndex { get; set; }
+
         List<Card> Cards { get; set; }
 
         event Action<IPlayer, Card> PlayerPlaysCard;

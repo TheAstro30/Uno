@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using ClassicUno.Classes.Assets;
 using ClassicUno.Classes.Helpers;
+using ClassicUno.Classes.Helpers.Management;
 using ClassicUno.Classes.Logic.Player;
 using ClassicUno.Classes.Settings.SettingsData;
 
@@ -28,8 +30,12 @@ namespace ClassicUno.Classes.Logic
 
         public List<Card> DisposePile { get; set; }
 
+        public IPlayer CurrentPlayer { get; set; }
+
+        public event Action<SoundType> SoundEffect;
+
         #region Constructor
-        public Game(Form parent, SettingsGameData data)
+        public Game(Form parent, GameOptionData data)
         {
             _parent = parent;
 
@@ -53,6 +59,7 @@ namespace ClassicUno.Classes.Logic
         {
             //placeholder for voice audio playback
             Debug.Print("Player " + player.NameData.Name + " passed - however, PlayerEndTurn is called separately");
+            AudioManager.PlayVoice(VoiceType.Pass, player);
         }
 
         private void PlayerEndTurn(IPlayer player)
@@ -139,16 +146,16 @@ namespace ClassicUno.Classes.Logic
             Deck.Shuffle();
         }
 
-        private void CreatePlayers(SettingsGameData data)
+        private void CreatePlayers(GameOptionData data)
         {
             /* Add players: min 2 max 4.
              * First add the human player */
-            Players.Add(new HumanPlayer() { NameData = data.NameData });
+            Players.Add(new HumanPlayer {NameData = data.NameData, VoiceIndex = AudioManager.GetRandomVoice(data.NameData.Gender)});
 
             for (var players = 0; players <= data.NumberOfPlayers - 2; players++)
             {
                 var n = ComputerNames.GetRandomName();
-                Players.Add(new ComputerPlayer() { NameData = n });
+                Players.Add(new ComputerPlayer {NameData = n, VoiceIndex = AudioManager.GetRandomVoice(n.Gender)});
             }
 
             foreach (var p in Players)
@@ -158,11 +165,6 @@ namespace ClassicUno.Classes.Logic
                 p.PlayerPass += PlayerPass;
                 p.PlayerEndTurn += PlayerEndTurn;
                 p.PlayerInvalidateRequired += PlayerInvalidateRequired;
-            }
-
-            foreach (var cd in Players)
-            {
-                Debug.Print("Player: " + cd.NameData.Name);
             }
         }
 
@@ -175,6 +177,7 @@ namespace ClassicUno.Classes.Logic
 
         private void DealWorkerCallback(object sender, DoWorkEventArgs e)
         {
+            Thread.Sleep(1000);
             for (var i = 0; i <= 6; i++)
             {
                 foreach (var p in Players)
@@ -182,11 +185,45 @@ namespace ClassicUno.Classes.Logic
                     var c = Deck[0];
                     p.Cards.Add(c);
                     Deck.RemoveAt(0);
-                    Thread.Sleep(200);
+                    Thread.Sleep(400);
+                    SoundEffect?.Invoke(SoundType.Deal);
                     _parent.Invalidate();
-                    Debug.Print("card added to " + p.NameData.Name +"'s hand");
                 }
             }
+            Thread.Sleep(400);
+            /* Top card */
+            var topCard = Deck[0];
+            Deck.RemoveAt(0);
+            /* We make sure the top card is not a draw four */
+            Card startingCard;
+            if (topCard.Type == CardType.DrawFour)
+            {
+                /* Use LINQ to find the first card that is NOT a Wild Draw Four */
+                startingCard = Deck.FirstOrDefault(c => c.Type != CardType.DrawFour);
+                Debug.Print("DF");
+                if (startingCard != null)
+                {
+                    /* Remove that specific card from the deck directly */
+                    Deck.Remove(startingCard);
+                    /* Put the original card back at the top */
+                    Deck.Add(topCard);
+                    /* Reshuffle */
+                    Deck.Shuffle();
+                }
+                else
+                {
+                    /* Fallback safety case if every card in the deck is a Wild Draw Four */
+                    startingCard = topCard;
+                }
+            }
+            else
+            {
+                /* The top card wasn't a Wild Draw Four, so use it directly */
+                startingCard = topCard;
+            }
+            DisposePile.Add(startingCard);
+            SoundEffect?.Invoke(SoundType.Drop);
+            _parent.Invalidate();
         }
         #endregion
     }

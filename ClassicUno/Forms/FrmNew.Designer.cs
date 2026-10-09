@@ -68,6 +68,7 @@
             // 
             // cmbPlayers
             // 
+            this.cmbPlayers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbPlayers.FormattingEnabled = true;
             this.cmbPlayers.Items.AddRange(new object[] {
             "2",
@@ -90,6 +91,7 @@
             // 
             // cmbGender
             // 
+            this.cmbGender.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbGender.FormattingEnabled = true;
             this.cmbGender.Location = new System.Drawing.Point(123, 41);
             this.cmbGender.Name = "cmbGender";

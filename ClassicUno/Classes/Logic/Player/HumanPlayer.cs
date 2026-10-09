@@ -16,6 +16,8 @@ namespace ClassicUno.Classes.Logic.Player
 
         public PlayerNameData NameData { get; set; }
 
+        public int VoiceIndex { get; set; }
+
         public List<Card> Cards { get; set; }
 
         public event Action<IPlayer, Card> PlayerPlaysCard;

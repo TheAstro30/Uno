@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Windows.Forms;
 using ClassicUno.Classes.Helpers;
 using ClassicUno.Classes.Helpers.Management;
+using ClassicUno.Classes.Helpers.UI;
 using ClassicUno.Classes.Logic;
 using ClassicUno.Classes.Settings.SettingsData;
 using ClassicUno.Controls;
@@ -18,6 +19,8 @@ namespace ClassicUno.Forms
     {
         private Game _currentGame;
         private readonly Timer _tmrNew;
+
+        private UiSynchronize _sync;
 
         public FrmGame()
         {
@@ -35,7 +38,10 @@ namespace ClassicUno.Forms
             _tmrNew = new Timer {Interval = 10, Enabled = true};
             _tmrNew.Tick += ShowNewGameDialog;
 
+            _sync = new UiSynchronize(this);
+
             SettingsManager.Load();
+            AudioManager.Initialize();
         }
 
         #region Form overrides
@@ -66,6 +72,12 @@ namespace ClassicUno.Forms
             base.OnLoad(e);
         }
 
+        protected override void OnResize(EventArgs e)
+        {
+            GraphicsManager.Rescale(ClientSize);
+            base.OnResize(e);
+        }
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             if (WindowState == FormWindowState.Normal)
@@ -85,6 +97,20 @@ namespace ClassicUno.Forms
         }
         #endregion
 
+        #region Sound callbacks
+
+        private void SoundEffectRequest(SoundType type)
+        {
+            if (InvokeRequired)
+            {
+                _sync.Execute(() => SoundEffectRequest(type));
+                return;
+            }
+            AudioManager.PlayEffect(type);
+        }
+
+        #endregion
+
         #region Timer callback
         private void ShowNewGameDialog(object sender, EventArgs e)
         {
@@ -95,22 +121,25 @@ namespace ClassicUno.Forms
 
             var d = new FrmNew
             {
-                NameData = SettingsManager.Settings.GameData.NameData,
-                NumberOfPlayers = SettingsManager.Settings.GameData.NumberOfPlayers
+                NameData = SettingsManager.Settings.Options.NameData,
+                NumberOfPlayers = SettingsManager.Settings.Options.NumberOfPlayers
             };
             if (d.ShowDialog(this) == DialogResult.OK)
             {
-                var data = new SettingsGameData {NameData = d.NameData, NumberOfPlayers = d.NumberOfPlayers};
-                SettingsManager.Settings.GameData = data;
-                NewGame(data);
+                SettingsManager.Settings.Options.NameData = d.NameData;
+                SettingsManager.Settings.Options.NumberOfPlayers = d.NumberOfPlayers;
+                NewGame(SettingsManager.Settings.Options);
             }
         }
         #endregion
 
         #region Private methods
-        private void NewGame(SettingsGameData data)
+        private void NewGame(GameOptionData data)
         {
             _currentGame = new Game(this, data);
+            _currentGame.SoundEffect += SoundEffectRequest;
+            AudioManager.PlayEffect(SoundType.Shuffle);
+            Invalidate();
         }
         #endregion
     }

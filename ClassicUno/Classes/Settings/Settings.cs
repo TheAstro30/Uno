@@ -36,8 +36,8 @@ namespace ClassicUno.Classes.Settings
         [XmlIgnore]
         public Size Size { get; set; }
 
-        [XmlElement("gameData")]
-        public SettingsGameData GameData = new SettingsGameData();
+        [XmlElement("options")]
+        public GameOptionData Options = new GameOptionData();
 
         /* Constructor */
         public Settings()
@@ -45,7 +45,13 @@ namespace ClassicUno.Classes.Settings
             /* Set default settings */
             Size = new Size(720, 470);
 
-            GameData.NumberOfPlayers = 2;
+            Options.NumberOfPlayers = 2;
+            Options.Sounds.EnableVoice = true;
+            Options.Sounds.VoiceVolume = 90;
+            Options.Sounds.EnableEffects = true;
+            Options.Sounds.EffectsVolume = 90;
+            Options.Sounds.EnableMusic = true;
+            Options.Sounds.MusicVolume = 30;
         }
     }
 }
