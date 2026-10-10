@@ -5,18 +5,22 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using ClassicUno.Classes.Assets;
+using ClassicUno.Classes.DirectSound;
 using ClassicUno.Classes.Helpers;
 using ClassicUno.Classes.Helpers.Management;
 using ClassicUno.Classes.Helpers.UI;
 using ClassicUno.Classes.Logic;
-using ClassicUno.Classes.Settings.SettingsData;
+using ClassicUno.Classes.Logic.Player;
 using ClassicUno.Controls;
 
 namespace ClassicUno.Forms
 {
-    public sealed partial class FrmGame : FeltForm
+    public sealed partial class FrmGame : FeltForm, IGame
     {
         private Game _currentGame;
         private readonly Timer _tmrNew;
@@ -36,6 +40,11 @@ namespace ClassicUno.Forms
             Text = $@"Classic UNO! 2026 - v{version.Major}.{version.Minor}";
             Icon = Icon.ExtractAssociatedIcon(assembly.Location);
 
+            foreach (var btn in tblButtons.Controls.Cast<Button>().Where(btn => btn != null))
+            {
+                btn.Click += OnButtonClick;
+            }
+
             _tmrNew = new Timer {Interval = 10, Enabled = true};
             _tmrNew.Tick += ShowNewGameDialog;
 
@@ -44,6 +53,14 @@ namespace ClassicUno.Forms
             SettingsManager.Load();
             GraphicsManager.Initialize();
             AudioManager.Initialize();
+
+            BuildMenuGame(mnuGame);
+
+            /* Help menu */
+            mnuHelp.DropDownItems.AddRange(new ToolStripItem[]
+            {
+                MenuHelper.AddMenuItem("About", "ABOUT", Keys.None, true, OnMenuClick)
+            });
         }
 
         #region Form overrides
@@ -77,6 +94,12 @@ namespace ClassicUno.Forms
         protected override void OnResize(EventArgs e)
         {
             GraphicsManager.Rescale(ClientSize);
+            /* Move button table layout */
+            var x = ClientRectangle.Width / 2 - (tblButtons.Width - (!btnRed.Visible ? 260 : 0)) / 2;
+
+            tblButtons.Bounds = new Rectangle(x, ClientRectangle.Height - statusBar.Height - tblButtons.Height,
+                tblButtons.Width, tblButtons.Height);
+
             base.OnResize(e);
         }
 
@@ -99,34 +122,84 @@ namespace ClassicUno.Forms
         }
         #endregion
 
+        #region Menus
+        private void BuildMenuGame(ToolStripDropDownItem m)
+        {
+            m.DropDownItems.Clear();
+
+            m.DropDownItems.AddRange(
+                new ToolStripItem[]
+                {
+                    MenuHelper.AddMenuItem("New game", "NEW", Keys.Control | Keys.N, true,  OnMenuClick),
+                    new ToolStripSeparator(),
+                    MenuHelper.AddMenuItem("Exit", "EXIT", Keys.Alt | Keys.F4, true,  OnMenuClick)
+                });
+        }
+
+        private void OnMenuClick(object sender, EventArgs e)
+        {
+            var o = (ToolStripItem)sender;
+            switch (o.Tag.ToString())
+            {
+                case "NEW":
+                    NewGame();
+                    break;
+
+                case "EXIT":
+                    Close();
+                    break;
+
+                case "ABOUT":
+                    using (var about = new FrmAbout())
+                    {
+                        about.ShowDialog(this);
+                    }
+                    break;
+            }
+        }
+        #endregion
+
         #region Mouse
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
             if (_currentGame == null)
             {
+                base.OnMouseMove(e);
                 return;
             }
 
-            var c = HitTest.Compare(_currentGame.Players[0].Cards, e.Location);
-            if (c != null)
+            if (_currentGame.CurrentPlayer != null && _currentGame.CurrentPlayer is HumanPlayer)
             {
-                Debug.Print("I have a card: " + c.Color + " " + c.Value + " " + c.Type);
+                /* Your turn */
+                var c = HitTest.Compare(_currentGame.Players[0].Cards, e.Location);
+                _currentGame.HighlightCard = c;
+                Invalidate();
             }
+
             base.OnMouseMove(e);
         }
 
-        #endregion
-
-        #region Sound callbacks
-        private void SoundEffectRequest(SoundType type)
+        protected override void OnMouseDoubleClick(MouseEventArgs e)
         {
-            if (InvokeRequired)
+            if (_currentGame.CurrentPlayer == null) 
             {
-                _sync.Execute(() => SoundEffectRequest(type));
+                /* Do nothing */
                 return;
             }
-            AudioManager.PlayEffect(type);
+
+            if (!(_currentGame.CurrentPlayer is HumanPlayer))
+            {
+                return;
+            }
+
+            if (_currentGame.HighlightCard != null && e.Button == MouseButtons.Left)
+            {
+                Debug.Print("card clicked " + _currentGame.CurrentColor);
+                _currentGame.PlayerPlayCard();
+            }
+
+            base.OnMouseDown(e);
         }
         #endregion
 
@@ -138,28 +211,161 @@ namespace ClassicUno.Forms
             _tmrNew.Tick -= ShowNewGameDialog;
             _tmrNew.Dispose();
 
-            var d = new FrmNew
-            {
-                NameData = SettingsManager.Settings.Options.NameData,
-                NumberOfPlayers = SettingsManager.Settings.Options.NumberOfPlayers
-            };
-            if (d.ShowDialog(this) == DialogResult.OK)
-            {
-                SettingsManager.Settings.Options.NameData = d.NameData;
-                SettingsManager.Settings.Options.NumberOfPlayers = d.NumberOfPlayers;
-                NewGame(SettingsManager.Settings.Options);
-            }
+            NewGame();
         }
         #endregion
 
         #region Private methods
-        private void NewGame(GameOptionData data)
+        private void NewGame()
         {
+            if (_currentGame?.GameRunning == true)
+            {
+                if (MessageBox.Show(this, @"Are you sure you want to resign this current game?", @"Classic UNO! 2026",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.OK)
+                {
+                    return;
+                }
+                _currentGame.Dispose();
+                _currentGame = null;
+                Invalidate();
+            }
+
+            var data = SettingsManager.Settings.Options;
+            var form = new FrmNew
+            {
+                NameData = data.NameData,
+                NumberOfPlayers = data.NumberOfPlayers
+            };
+            if (form.ShowDialog(this) != DialogResult.OK)
+            {
+                return;
+            }
+            data.NameData = form.NameData;
+            data.NumberOfPlayers = form.NumberOfPlayers;
+
             _currentGame = new Game(this, data);
-            _currentGame.SoundEffect += SoundEffectRequest;
             AudioManager.PlayEffect(SoundType.Shuffle);
             Invalidate();
         }
         #endregion
+
+        #region IGame
+        public void SoundEffectRequest(SoundType type)
+        {
+            if (InvokeRequired)
+            {
+                Debug.Print("invoke required");
+                _sync.Execute(() => SoundEffectRequest(type));
+                return;
+            }
+            AudioManager.PlayEffect(type);
+        }
+
+        public void VoiceRequest(VoiceType type, IPlayer player)
+        {
+            if (InvokeRequired)
+            {
+                _sync.Execute(() => VoiceRequest(type, player));
+                return;
+            }
+
+            AudioManager.PlayVoice(type, player);
+        }
+
+        public void ShowButtons(bool visible)
+        {
+            if (InvokeRequired)
+            {
+                _sync.Execute(() => ShowButtons(visible));
+                return;
+            }
+
+            tblButtons.Visible = visible;
+        }
+
+        public void EnableDraw(bool enabled)
+        {
+            if (InvokeRequired)
+            {
+                _sync.Execute(() => EnableDraw(enabled));
+                return;
+            }
+
+            btnDraw.Enabled = enabled;
+        }
+
+        public void EnablePass(bool enabled)
+        {
+            if (InvokeRequired)
+            {
+                _sync.Execute(() => EnablePass(enabled));
+                return;
+            }
+
+            btnPass.Enabled = enabled;
+        }
+
+        public void ShowColorButtons(bool visible)
+        {
+            if (InvokeRequired)
+            {
+                _sync.Execute(() => ShowColorButtons(visible));
+                return;
+            }
+
+            btnRed.Visible = visible;
+            btnBlue.Visible = visible;
+            btnGreen.Visible = visible;
+            btnYellow.Visible = visible;
+
+            OnResize(new EventArgs());
+
+            if (visible)
+            {
+                /* This is where we need to loop back to Game */
+            }
+        }
+        #endregion
+
+        private void OnButtonClick(object sender, EventArgs e)
+        {
+            if (_currentGame == null)
+            {
+                return;
+            }
+
+            var btn = (Button) sender;
+            if (btn == null)
+            {
+                return;
+            }
+
+            switch (btn.Tag)
+            {
+                case "DRAW":
+                    _currentGame.PlayerDrawCard();
+                    break;
+
+                case "PASS":
+                    _currentGame.PlayerPass();
+                    break;
+
+                case "RED":
+                    _currentGame.PlayerChoosesColor(_currentGame.CurrentPlayer, CardColor.Red);
+                    break;
+
+                case "BLUE":
+                    _currentGame.PlayerChoosesColor(_currentGame.CurrentPlayer, CardColor.Blue);
+                    break;
+
+                case "GREEN":
+                    _currentGame.PlayerChoosesColor(_currentGame.CurrentPlayer, CardColor.Green);
+                    break;
+
+                case "YELLOW":
+                    _currentGame.PlayerChoosesColor(_currentGame.CurrentPlayer, CardColor.Yellow);
+                    break;
+            }
+        }
     }
 }

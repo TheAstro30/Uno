@@ -60,12 +60,17 @@
     <Compile Include="Classes\FolderSearch.cs" />
     <Compile Include="Classes\Helpers\Management\AudioManager.cs" />
     <Compile Include="Classes\Helpers\Management\SettingsManager.cs" />
+    <Compile Include="Classes\Helpers\MenuHelper.cs" />
     <Compile Include="Classes\Helpers\UI\HitTest.cs" />
+    <Compile Include="Classes\Helpers\UI\IGame.cs" />
     <Compile Include="Classes\Helpers\UI\UiSynchronize.cs" />
     <Compile Include="Classes\Helpers\Utils.cs" />
     <Compile Include="Classes\Settings\Settings.cs" />
     <Compile Include="Classes\Settings\SettingsData\GameOptionData.cs" />
     <Compile Include="Classes\Settings\SettingsData\SoundData.cs" />
+    <Compile Include="Controls\CustomButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controls\FeltForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -99,6 +104,12 @@
     <Compile Include="Forms\FrmNew.Designer.cs">
       <DependentUpon>FrmNew.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FrmOptions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FrmOptions.Designer.cs">
+      <DependentUpon>FrmOptions.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Forms\FrmAbout.resx">
@@ -109,6 +120,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FrmNew.resx">
       <DependentUpon>FrmNew.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FrmOptions.resx">
+      <DependentUpon>FrmOptions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -135,6 +149,12 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <None Include="Images\btnBlue.png" />
+    <None Include="Images\btnDraw.png" />
+    <None Include="Images\btnGreen.png" />
+    <None Include="Images\btnPass.png" />
+    <None Include="Images\btnRed.png" />
+    <None Include="Images\btnYellow.png" />
     <Content Include="mainIcon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

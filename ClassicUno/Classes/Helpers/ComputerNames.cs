@@ -11,10 +11,10 @@ namespace ClassicUno.Classes.Helpers
     public static class ComputerNames
     {
         /* Simple class for generating random Computer player names and genders */
-        private static readonly Random Gender = new Random();
+        private static readonly Random Rng = new Random();
 
-        private static readonly Random Name = new Random();
-
+        private static char RandomLetter() => (char)('A' + Rng.Next(26));
+        
         private static readonly List<string> MaleNames = new List<string>()
         {
             "John",
@@ -31,7 +31,11 @@ namespace ClassicUno.Classes.Helpers
             "Colin",
             "Allen",
             "Tom",
-            "Jim"
+            "Jim",
+            "Rob",
+            "Peter",
+            "Simon",
+            "Dan"
         };
 
         private static readonly List<string> FemaleNames = new List<string>()
@@ -49,7 +53,12 @@ namespace ClassicUno.Classes.Helpers
             "Claire",
             "Amanda",
             "Jessica",
-            "Chloe"
+            "Chloe",
+            "Kendra",
+            "Jane",
+            "Judy",
+            "Anna",
+            "Sandy"
         };
 
         public static PlayerNameData GetRandomName()
@@ -57,7 +66,7 @@ namespace ClassicUno.Classes.Helpers
             PlayerGender gender;
             List<string> names;
             /* Choose a random gender */
-            switch (Gender.Next(0, 2))
+            switch (Rng.Next(0, 2))
             {
                 case 0:
                     gender = PlayerGender.Male;
@@ -70,7 +79,7 @@ namespace ClassicUno.Classes.Helpers
                     break;
             }
             /* Pick a random name based on gender */
-            var name = names[Name.Next(0, names.Count - 1)];
+            var name = $"{names[Rng.Next(0, names.Count - 1)]} {RandomLetter()}.";
             var data = new PlayerNameData
             {
                 Name = name,

@@ -7,6 +7,7 @@ using System.Drawing;
 
 namespace ClassicUno.Classes.Assets
 {
+    [Serializable]
     public enum CardColor
     {
         None = 0,
@@ -16,6 +17,7 @@ namespace ClassicUno.Classes.Assets
         Blue = 4
     }
 
+    [Serializable]
     public enum CardType
     {
         None = 0,

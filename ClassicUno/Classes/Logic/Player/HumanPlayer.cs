@@ -12,18 +12,19 @@ namespace ClassicUno.Classes.Logic.Player
     [Serializable]
     public class HumanPlayer : IPlayer
     {
-        private Game _game;
-
         public PlayerNameData NameData { get; set; }
 
         public int VoiceIndex { get; set; }
 
         public List<Card> Cards { get; set; }
+        public bool Skip { get; set; }
 
+        public event Action<IPlayer> PlayerBeginTurn;
+        public event Action<IPlayer> PlayerDraw;
         public event Action<IPlayer, Card> PlayerPlaysCard;
+        public event Action<IPlayer> PlayerHasUno;
         public event Action<IPlayer> PlayerPass;
         public event Action<IPlayer> PlayerEndTurn;
-        public event Action<IPlayer> PlayerInvalidateRequired;
 
         public HumanPlayer()
         {
@@ -31,9 +32,27 @@ namespace ClassicUno.Classes.Logic.Player
             Cards = new List<Card>();
         }
 
-        public void BeginTurn(Game game)
+        public void BeginTurn(Card card, CardColor currentColor)
         {
-            _game = game;
+            /* Discard card "card" isn't necessary for human player */
+            if (Skip)
+            {
+                Skip = false;
+                EndTurn();
+                return;
+            }
+            PlayerBeginTurn?.Invoke(this);
+        }
+
+        public void PlayCard(Card card)
+        {
+            Cards.Remove(card);
+            PlayerPlaysCard?.Invoke(this, card);
+        }
+
+        public void DrawCard(Card card)
+        {
+            Cards.Add(card);
         }
 
         public void Pass()

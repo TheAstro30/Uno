@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 
 namespace ClassicUno.Classes.Settings.SettingsData
 {
+    [Serializable]
     public enum PlayerGender
     {
         [Description("Male")]

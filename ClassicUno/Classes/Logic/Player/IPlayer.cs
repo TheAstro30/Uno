@@ -11,18 +11,28 @@ namespace ClassicUno.Classes.Logic.Player
 {
     public interface IPlayer
     {
+        /* This is the basic "contract" for each player - note: that this is a work in progress
+         * and will change over time. */
         PlayerNameData NameData { get; set; }
 
         int VoiceIndex { get; set; }
 
         List<Card> Cards { get; set; }
 
+        bool Skip { get; set; }
+
+        event Action<IPlayer> PlayerBeginTurn;
+        event Action<IPlayer> PlayerDraw; 
         event Action<IPlayer, Card> PlayerPlaysCard;
+        event Action<IPlayer> PlayerHasUno;
         event Action<IPlayer> PlayerPass;
         event Action<IPlayer> PlayerEndTurn;
-        event Action<IPlayer> PlayerInvalidateRequired;
 
-        void BeginTurn(Game game);
+        void BeginTurn(Card card, CardColor currentColor);
+
+        void PlayCard(Card card);
+
+        void DrawCard(Card card);
 
         void Pass();
 
